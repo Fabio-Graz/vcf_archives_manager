@@ -27,7 +27,7 @@ class MainWindow : public Gtk::Window
 public:
     MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& p_builder);
 
-
+    void append_log(std::ostringstream& osstream);
 
 protected:
     Glib::RefPtr<Gtk::Builder> m_builder;
@@ -57,8 +57,6 @@ protected:
 
     // private methods
 
-
-    void append_log(std::ostringstream& osstream);
 
     void showErrorDialog(const std::string& message);
 

@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <filesystem>
-#include <cmath>
+//#include <cmath>
 //#include <cstring>
 #include <sstream>
 
@@ -17,11 +17,23 @@
 ////////////
 
 
+
 // Structure to represent a VCF contact
 struct Contact {
     std::string name;
     std::vector<std::string> fields;
 };
+
+
+// Overload the << operator for the Contact class
+std::ostream& operator<<(std::ostream& os, const Contact& contact) {
+    os << "Name: " << contact.name << ", Fields: [";
+    for (const auto& field : contact.fields) {
+        os << field << ", ";
+    }
+    os << "]";
+    return os;
+}
 
 // Function to parse a VCF file
 std::map<std::string, Contact> parseVCF(const std::string& filePath) {
@@ -48,7 +60,7 @@ std::map<std::string, Contact> parseVCF(const std::string& filePath) {
 }
 
 // Function to merge two VCF files
-std::map<std::string, Contact> mergeVCF(const std::string& file1, const std::string& file2) {
+std::map<std::string, Contact> mergeVCF(const std::string& file1, const std::string& file2, MainWindow& window) {
     auto contacts1 = parseVCF(file1);
     auto contacts2 = parseVCF(file2);
 
@@ -60,18 +72,19 @@ std::map<std::string, Contact> mergeVCF(const std::string& file1, const std::str
                 contacts1[name].fields.push_back(field);
 
             }
-
-            //std::ostringstream osstream ;
-            //osstream <<"\n*** merged contact: " << std::string(contacts1[name]);
-            //MainWindow::append_log(osstream);
+            // Log merged contact
+            std::ostringstream osstream;
+            osstream <<"\n*** merged contact: " << contacts1[name];
+            window.append_log(osstream);
 
         } else {
             // Add new contact
             contacts1[name] = contact;
 
-            //std::ostringstream osstream ;
-            //osstream <<"\nadded contact: " << std::string(contacts1[name]);
-            //MainWindow::append_log(osstream);
+            // Log added contact
+            std::ostringstream osstream;
+            osstream <<"\nadded contact: " << contacts1[name];
+            window.append_log(osstream);
 
         }
     }
@@ -310,7 +323,7 @@ void MainWindow::on_run_button_clicked()
         }
 
         try {
-            auto mergedContacts = mergeVCF(inputfile_path_1, inputfile_path_2);
+            auto mergedContacts = mergeVCF(inputfile_path_1, inputfile_path_2, *this);
             //std::string outputPath = "merged_contacts.vcf";
             writeMergedVCF(mergedContacts, outputFile_fs);
 
