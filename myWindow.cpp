@@ -25,15 +25,7 @@ struct Contact {
 };
 
 
-// Overload the << operator for the Contact class
-std::ostream& operator<<(std::ostream& os, const Contact& contact) {
-    os << "Name: " << contact.name << ", Fields: [";
-    for (const auto& field : contact.fields) {
-        os << field << ", ";
-    }
-    os << "]";
-    return os;
-}
+
 
 // Function to parse a VCF file
 std::map<std::string, Contact> parseVCF(const std::string& filePath) {
@@ -57,6 +49,14 @@ std::map<std::string, Contact> parseVCF(const std::string& filePath) {
     }
 
     return contacts;
+}
+
+
+
+// Overload the << operator for the Contact class
+std::ostream& operator<<(std::ostream& os, const Contact& contact) {
+    os << "Name: " << contact.name;
+    return os;
 }
 
 // Function to merge two VCF files
