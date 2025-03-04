@@ -1,17 +1,6 @@
 #pragma once
 
 #include <gtkmm.h>
-//#include <gtkmm/builder.h>
-//#include <gtkmm/button.h>
-//#include <gtkmm/entry.h>
-//#include <gtkmm/filechoosernative.h>
-//#include <gtkmm/label.h>
-
-#include <opencv2/opencv.hpp>
-
-#include <opencv2/core.hpp>
-//#include <videoio/videoio.hpp>
-#include <opencv2/highgui.hpp>
 
 #include <string>
 
