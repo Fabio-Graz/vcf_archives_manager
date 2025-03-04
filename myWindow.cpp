@@ -302,9 +302,28 @@ void MainWindow::on_run_button_clicked()
     std::filesystem::path outputFile_fs = outputFolder_fs / outputFilename.c_str();
 
 
+    // check if the output filename is empty or invalid
+    // before proceeding with the merge operation.
+
+
+    if (outputFilename.empty()) {
+        showErrorDialog("Please specify an output filename.");
+        return;
+    }
+
+
+    // in case the user didn't provide for an extension,
+    // or provide for a different one, use .vcf
+
+    if (outputFile_fs.extension() != ".vcf") {
+    outputFile_fs.replace_extension(".vcf");
+    }
+
+
+
     std::ostringstream osstream ;
 
-    osstream <<"\nProcessing file " << inputfile_path_1.c_str() << " \nand \n" << inputfile_path_2.c_str() ;
+    osstream <<"\n\nProcessing files: " << inputfile_path_1.c_str() << " \nand \n" << inputfile_path_2.c_str() << "\n\nOutput file: " << outputFile_fs.string();
 
     append_log(osstream);
 
@@ -317,20 +336,20 @@ void MainWindow::on_run_button_clicked()
 
 
 
-        if (inputfile_path_1.empty() || inputfile_path_2.empty()) {
-            showErrorDialog("Please provide paths to both VCF files.");
-            return;
-        }
+    if (inputfile_path_1.empty() || inputfile_path_2.empty()) {
+        showErrorDialog("Please provide paths to both VCF files.");
+        return;
+    }
 
-        try {
-            auto mergedContacts = mergeVCF(inputfile_path_1, inputfile_path_2, *this);
-            //std::string outputPath = "merged_contacts.vcf";
-            writeMergedVCF(mergedContacts, outputFile_fs);
+    try {
+        auto mergedContacts = mergeVCF(inputfile_path_1, inputfile_path_2, *this);
+        //std::string outputPath = "merged_contacts.vcf";
+        writeMergedVCF(mergedContacts, outputFile_fs);
 
-            showInfoDialog("Merged VCF saved to " + std::string(outputFile_fs));
-        } catch (const std::exception& e) {
-            showErrorDialog("An error occurred: " + std::string(e.what()));
-        }
+        showInfoDialog("Merged VCF saved to " + std::string(outputFile_fs));
+    } catch (const std::exception& e) {
+        showErrorDialog("An error occurred: " + std::string(e.what()));
+    }
 
 
 
