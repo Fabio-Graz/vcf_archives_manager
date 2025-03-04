@@ -1,8 +1,8 @@
-# Set the name and the supported language of the project
-project(Simple_GTK_OpenCV C CXX)
-
 # Set the minimum version of cmake required to build this project
 cmake_minimum_required(VERSION 3.10)
+
+# Set the name and the supported language of the project
+project(Simple_GTK_OpenCV C CXX)
 
 # Use the package PkgConfig to detect GTK+ headers/library files
 find_package(PkgConfig REQUIRED)
