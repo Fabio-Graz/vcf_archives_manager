@@ -106,6 +106,24 @@ void writeMergedVCF(const std::map<std::string, Contact>& contacts, const std::s
 }
 
 
+
+// helper functions to verify existance
+
+bool ensureOutputFolderExists(const std::filesystem::path& folder) {
+    if (!std::filesystem::is_directory(folder)) {
+        return std::filesystem::create_directories(folder);
+    }
+    return true;
+}
+
+
+//bool ensureOutputFileExists(const std::filesystem::path& outfile) {
+//    if (!std::filesystem::exists(outfile)) {
+//        return true;
+//    }
+//}
+
+
 ////////
 // codice GUI
 ///////
@@ -216,7 +234,7 @@ void MainWindow::on_select_input_1_clicked()
     // inizio inciarmo
     // contestualmente alla acquisizione dell'input file
     // tramite finestra di dialogo, viene anche scritto
-    // il path della cartella di output
+    // un path di default della cartella di output
 
     std::filesystem::path filepath_fs = filepath;
 
@@ -260,100 +278,48 @@ void MainWindow::on_select_input_2_clicked()
 
 
 
-void MainWindow::on_run_button_clicked()
-    { /*function to process video file*/
-
+void MainWindow::on_run_button_clicked() {
     auto inputfile_path_1 = m_entry_file_1->get_text();
-
     auto inputfile_path_2 = m_entry_file_2->get_text();
-
     Glib::ustring outputFolder = m_entry_out_folder->get_text();
-
     Glib::ustring outputFilename = m_entry_out_filename->get_text();
-
-
-
-
-    std::filesystem::path outputFolder_fs = std::string(outputFolder);
-
-    outputFolder_fs = m_entry_out_folder->get_text();
-
-    bool outputFolderExists = std::filesystem::is_directory(outputFolder_fs);
-
-
-    if (not outputFolderExists)
-    {
-
-        bool create_success = std::filesystem::create_directories(outputFolder_fs);
-
-        if (create_success)
-        {
-            std::ostringstream osstream ;
-
-            osstream <<"\ncreated output folder : " << outputFolder_fs.c_str();
-
-            append_log(osstream);
-
-        }
-    }
-
-
-
-    std::filesystem::path outputFile_fs = outputFolder_fs / outputFilename.c_str();
-
-
-    // check if the output filename is empty or invalid
-    // before proceeding with the merge operation.
-
-
-    if (outputFilename.empty()) {
-        showErrorDialog("Please specify an output filename.");
-        return;
-    }
-
-
-    // in case the user didn't provide for an extension,
-    // or provide for a different one, use .vcf
-
-    if (outputFile_fs.extension() != ".vcf") {
-    outputFile_fs.replace_extension(".vcf");
-    }
-
-
-
-    std::ostringstream osstream ;
-
-    osstream <<"\n\nProcessing files: " << inputfile_path_1.c_str() << " \nand \n" << inputfile_path_2.c_str() << "\n\nOutput file: " << outputFile_fs.string();
-
-    append_log(osstream);
-
-
-
-
-
-    // qua comincia il codice di processamento vero e proprio
-
-
-
 
     if (inputfile_path_1.empty() || inputfile_path_2.empty()) {
         showErrorDialog("Please provide paths to both VCF files.");
         return;
     }
 
+    if (outputFilename.empty()) {
+        showErrorDialog("Please specify an output filename.");
+        return;
+    }
+
+    std::filesystem::path outputFolder_fs = std::string(outputFolder);
+    std::filesystem::path outputFile_fs = outputFolder_fs / outputFilename.c_str();
+
+    // Ensure the output filename has a .vcf extension
+    if (outputFile_fs.extension() != ".vcf") {
+        outputFile_fs.replace_extension(".vcf");
+    }
+
+    // Ensure the output folder exists
+    if (!ensureOutputFolderExists(outputFolder_fs)) {
+        showErrorDialog("Failed to create output folder.");
+        return;
+    }
+
+    // Log the output file path
+    std::ostringstream osstream;
+    osstream << "\nOutput file: " << outputFile_fs.string();
+    append_log(osstream);
+
     try {
         auto mergedContacts = mergeVCF(inputfile_path_1, inputfile_path_2, *this);
-        //std::string outputPath = "merged_contacts.vcf";
         writeMergedVCF(mergedContacts, outputFile_fs);
-
-        showInfoDialog("Merged VCF saved to " + std::string(outputFile_fs));
+        showInfoDialog("Merged VCF saved to " + outputFile_fs.string());
     } catch (const std::exception& e) {
         showErrorDialog("An error occurred: " + std::string(e.what()));
     }
-
-
-
-
 }
 
 
