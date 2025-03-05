@@ -107,7 +107,8 @@ void writeMergedVCF(const std::map<std::string, Contact>& contacts, const std::s
 
 
 
-// helper functions to verify existance
+// helper functions to verify existance of output fodler
+// creates it if doesn't exist
 
 bool ensureOutputFolderExists(const std::filesystem::path& folder) {
     if (!std::filesystem::is_directory(folder)) {
@@ -117,13 +118,27 @@ bool ensureOutputFolderExists(const std::filesystem::path& folder) {
 }
 
 
-//bool ensureOutputFileExists(const std::filesystem::path& outfile) {
-//    if (!std::filesystem::exists(outfile)) {
-//        return true;
-//    }
-//}
+// helper functions to verify existance of output file, returns true if user cancels
+// note: the previous helper does not need to be in the namespace of the MainWindow
+// this does because this calls a dialog window, which needs a parent
 
+bool MainWindow::checkUserCancelOnFileExists(const std::filesystem::path& outfile) {
+    if (std::filesystem::exists(outfile)) {
 
+        Gtk::MessageDialog dialog(*this, "File already exists. Overwrite?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK_CANCEL);
+        dialog.set_secondary_text("The file " + outfile.string() + " already exists. Do you want to overwrite it?");
+        int result = dialog.run();
+
+        if (result != Gtk::RESPONSE_OK) {
+            // User chose to cancel
+            return true;
+
+        }
+    }
+
+    return false;
+
+}
 ////////
 // codice GUI
 ///////
@@ -307,6 +322,15 @@ void MainWindow::on_run_button_clicked() {
         showErrorDialog("Failed to create output folder.");
         return;
     }
+
+    // Ensure the use did not cancel because output file exists
+    if (checkUserCancelOnFileExists(outputFile_fs)) {
+        // User chose to cancel
+        return;
+    }
+
+
+
 
     // Log the output file path
     std::ostringstream osstream;

@@ -16,6 +16,8 @@ class MainWindow : public Gtk::Window
 public:
     MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& p_builder);
 
+    bool checkUserCancelOnFileExists(const std::filesystem::path& filePath);
+
     void append_log(std::ostringstream& osstream);
 
 protected:
