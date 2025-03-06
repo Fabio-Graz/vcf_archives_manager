@@ -18,6 +18,16 @@ public:
 
     bool checkUserCancelOnFileExists(const std::filesystem::path& filePath);
 
+
+    // Signal handlers for radio buttons
+    void on_radio_merge_toggled();
+    void on_radio_deduplicate_toggled();
+
+    // Helper function to deduplicate a VCF file
+    void deduplicateVCF(const std::string& filePath, const std::string& outputPath);
+
+
+
     void append_log(std::ostringstream& osstream);
 
 protected:
@@ -25,6 +35,7 @@ protected:
 
     Glib::RefPtr<Gtk::Button> m_button_open_1;
     Glib::RefPtr<Gtk::Button> m_button_open_2;
+    Glib::RefPtr<Gtk::Button> m_button_open_3;
 
 
 
@@ -46,6 +57,12 @@ protected:
 
     Glib::RefPtr<Gtk::Button> m_button_quit;
 
+
+
+    Glib::RefPtr<Gtk::RadioButton> m_radio_merge;
+    Glib::RefPtr<Gtk::RadioButton> m_radio_deduplicate;
+
+
     // private methods
 
 
@@ -59,7 +76,15 @@ protected:
 
     void on_select_input_2_clicked();
 
+    void on_select_folder_clicked();
+
     void on_run_button_clicked();
 
     void on_quit_button_clicked();
+
+
+
+    // Track the current mode
+    bool m_is_merge_mode = true;
+
 };

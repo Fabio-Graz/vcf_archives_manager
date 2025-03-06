@@ -107,6 +107,40 @@ void writeMergedVCF(const std::map<std::string, Contact>& contacts, const std::s
 
 
 
+// function for deduplication
+
+void MainWindow::deduplicateVCF(const std::string& filePath, const std::string& outputPath) {
+    auto contacts = parseVCF(filePath);
+    std::map<std::string, Contact> uniqueContacts;
+
+    for (const auto& [name, contact] : contacts) {
+        // Extract name and surname (assuming the format is "Name Surname")
+        std::istringstream iss(name);
+        std::string namePart, surnamePart;
+        iss >> namePart >> surnamePart;
+
+        // Create a unique key by combining name and surname
+        std::string key = namePart + " " + surnamePart;
+
+        // Check if the key already exists
+        if (uniqueContacts.find(key) == uniqueContacts.end()) {
+            uniqueContacts[key] = contact;
+        } else {
+            // Log duplicate contact
+            std::ostringstream osstream;
+            osstream << "\nDuplicate contact: " << name;
+            append_log(osstream);
+        }
+    }
+
+    // Write the deduplicated contacts to the output file
+    writeMergedVCF(uniqueContacts, outputPath);
+}
+
+
+
+
+
 // helper functions to verify existance of output fodler
 // creates it if doesn't exist
 
@@ -158,18 +192,11 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     m_builder->get_widget("button_open_2", p_button_open_2); // Retrieve the button from XML file
     m_button_open_2 = Glib::RefPtr<Gtk::Button>(p_button_open_2); // Assign to m_button
 
+    Gtk::Button* p_button_open_3 = nullptr; // Create a raw pointer to a button
+    m_builder->get_widget("button_open_3", p_button_open_3); // Retrieve the button from XML file
+    m_button_open_3 = Glib::RefPtr<Gtk::Button>(p_button_open_3); // Assign to m_button
 
 
-
-
-    Gtk::Button* p_button_run = nullptr; // Create a raw pointer to a button
-    m_builder->get_widget("button_run", p_button_run); // Retrieve the button from XML file
-    m_button_run = Glib::RefPtr<Gtk::Button>(p_button_run); // Assign to m_button
-
-
-    Gtk::Button* p_button_quit = nullptr; // Create a raw pointer to a button
-    m_builder->get_widget("button_quit", p_button_quit); // Retrieve the button from XML file
-    m_button_quit = Glib::RefPtr<Gtk::Button>(p_button_quit); // Assign to m_button
 
 
 
@@ -195,9 +222,39 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
 
 
 
+    // Retrieve radio buttons
+    Gtk::RadioButton* p_radio_merge = nullptr;
+    m_builder->get_widget("radio_merge", p_radio_merge);
+    m_radio_merge = Glib::RefPtr<Gtk::RadioButton>(p_radio_merge);
+
+    Gtk::RadioButton* p_radio_deduplicate = nullptr;
+    m_builder->get_widget("radio_deduplicate", p_radio_deduplicate);
+    m_radio_deduplicate = Glib::RefPtr<Gtk::RadioButton>(p_radio_deduplicate);
+
+
+    // process and quit buttons
+
+    Gtk::Button* p_button_run = nullptr; // Create a raw pointer to a button
+    m_builder->get_widget("button_run", p_button_run); // Retrieve the button from XML file
+    m_button_run = Glib::RefPtr<Gtk::Button>(p_button_run); // Assign to m_button
+
+
+    Gtk::Button* p_button_quit = nullptr; // Create a raw pointer to a button
+    m_builder->get_widget("button_quit", p_button_quit); // Retrieve the button from XML file
+    m_button_quit = Glib::RefPtr<Gtk::Button>(p_button_quit); // Assign to m_button
+
+
+
+    // log window
+
+
     Gtk::TextView* p_text_log= nullptr; // Create a raw pointer to a TextView
     m_builder->get_widget("textview_log", p_text_log); // Retrieve the entry for textview_log
     m_text_log = Glib::RefPtr<Gtk::TextView>(p_text_log); // Assign to m_entry
+
+
+
+    // connecting events with relative functions
 
 
     // Connect the open button click event to the relative function
@@ -205,6 +262,14 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
 
     // Connect the open button click event to the relative function
     m_button_open_2->signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_select_input_2_clicked));
+
+
+    m_button_open_3->signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_select_folder_clicked));
+
+
+    // Connect radio button signals
+    m_radio_merge->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_radio_merge_toggled));
+    m_radio_deduplicate->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_radio_deduplicate_toggled));
 
 
 
@@ -215,6 +280,8 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     m_button_quit->signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_quit_button_clicked));
 
 }
+
+
 
 
 
@@ -284,11 +351,27 @@ void MainWindow::on_select_input_2_clicked()
         m_entry_file_2->set_text(filepath); // Set the entry text to the selected filepath
 
 
-
     }
 }
 
 
+
+void MainWindow::on_select_folder_clicked()
+{
+    // Create a FileChooserNative dialog
+    auto dialog = Gtk::FileChooserNative::create("Select output folder", *this, Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+
+    // Show the dialog and wait for a response
+    int result = dialog->run();
+
+    // Handle the response
+    if (result == Gtk::ResponseType::RESPONSE_ACCEPT)
+    {
+        auto folderpath = dialog->get_filename();
+        m_entry_out_folder->set_text(folderpath); // Set the entry text to the selected folder path
+
+    }
+}
 
 
 
@@ -337,14 +420,46 @@ void MainWindow::on_run_button_clicked() {
     osstream << "\nOutput file: " << outputFile_fs.string();
     append_log(osstream);
 
+
     try {
-        auto mergedContacts = mergeVCF(inputfile_path_1, inputfile_path_2, *this);
-        writeMergedVCF(mergedContacts, outputFile_fs);
-        showInfoDialog("Merged VCF saved to " + outputFile_fs.string());
+        if (m_is_merge_mode) {
+            if (inputfile_path_2.empty()) {
+                showErrorDialog("Please provide paths to both VCF files for merging.");
+                return;
+            }
+            auto mergedContacts = mergeVCF(inputfile_path_1, inputfile_path_2, *this);
+            writeMergedVCF(mergedContacts, outputFile_fs);
+            showInfoDialog("Merged VCF saved to " + outputFile_fs.string());
+        } else {
+            deduplicateVCF(inputfile_path_1, outputFile_fs);
+            showInfoDialog("Deduplicated VCF saved to " + outputFile_fs.string());
+        }
     } catch (const std::exception& e) {
         showErrorDialog("An error occurred: " + std::string(e.what()));
     }
 }
+
+
+
+// implement the radio button handlers
+
+void MainWindow::on_radio_merge_toggled() {
+    if (m_radio_merge->get_active()) {
+        m_is_merge_mode = true;
+        m_entry_file_2->set_sensitive(true); // Enable the second input field
+    }
+}
+
+void MainWindow::on_radio_deduplicate_toggled() {
+    if (m_radio_deduplicate->get_active()) {
+        m_is_merge_mode = false;
+        m_entry_file_2->set_sensitive(false); // Disable the second input field
+        m_entry_file_2->set_text(""); // erase the second input field
+    }
+}
+
+
+
 
 
 
