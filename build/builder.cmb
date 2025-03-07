@@ -32,7 +32,9 @@
 	(1,32,"GtkButton","button_quit",33,None,None,None,1,None,None),
 	(1,33,"GtkGrid","grid_operations",12,None,None,None,0,None,None),
 	(1,34,"GtkEntry","entry_out_filename",4,None,None,None,10,None,None),
-	(1,35,"GtkLabel","label_out_filename",4,None,None,None,11,None,None)
+	(1,35,"GtkLabel","label_out_filename",4,None,None,None,11,None,None),
+	(1,36,"GtkRadioButton","op_choice_merge",33,None,None,None,2,None,None),
+	(1,37,"GtkRadioButton","op_choice_deduplicate",33,None,None,None,3,None,None)
   </object>
   <object_property>
 	(1,1,"GtkWindow","default-height","400",0,None,None,None,None,None,None,None,None),
@@ -116,7 +118,16 @@
 	(1,34,"GtkWidget","visible","True",None,None,None,None,None,None,None,None,None),
 	(1,35,"GtkLabel","label","output filename:",0,None,None,None,None,None,None,None,None),
 	(1,35,"GtkWidget","halign","start",0,None,None,None,None,None,None,None,None),
-	(1,35,"GtkWidget","visible","True",0,None,None,None,None,None,None,None,None)
+	(1,35,"GtkWidget","visible","True",0,None,None,None,None,None,None,None,None),
+	(1,36,"CmbAccessibleProperty","cmb-a11y-property-role","radio-button",None,None,None,None,None,None,None,None,None),
+	(1,36,"GtkActionable","action-name","merge",None,None,None,None,None,None,None,None,None),
+	(1,36,"GtkButton","label","merge",None,None,None,None,None,None,None,None,None),
+	(1,36,"GtkWidget","visible","True",None,None,None,None,None,None,None,None,None),
+	(1,37,"CmbAccessibleProperty","cmb-a11y-property-role","radio-button",None,None,None,None,None,None,None,None,None),
+	(1,37,"GtkActionable","action-name","deduplicate",None,None,None,None,None,None,None,None,None),
+	(1,37,"GtkButton","label","deduplicate",None,None,None,None,None,None,None,None,None),
+	(1,37,"GtkRadioButton","active","False",None,None,None,None,None,None,None,None,None),
+	(1,37,"GtkRadioButton","group","36",None,None,None,None,None,None,None,None,None)
   </object_property>
   <object_layout_property>
 	(1,2,3,"GtkGridLayoutChild","left-attach","0",0,None,None,None),
@@ -147,6 +158,22 @@
 	(1,4,34,"GtkGridLayoutChild","top-attach","8",None,None,None,None),
 	(1,4,34,"GtkGridLayoutChild","width","1",None,None,None,None),
 	(1,4,35,"GtkGridLayoutChild","top-attach","7",None,None,None,None),
-	(1,33,32,"GtkGridLayoutChild","left-attach","3",None,None,None,None)
+	(1,33,31,"GtkGridLayoutChild","top-attach","1",None,None,None,None),
+	(1,33,32,"GtkGridLayoutChild","left-attach","3",None,None,None,None),
+	(1,33,32,"GtkGridLayoutChild","top-attach","1",None,None,None,None),
+	(1,33,36,"GtkGridLayoutChild","height","1",None,None,None,None),
+	(1,33,36,"GtkGridLayoutChild","left-attach","1",None,None,None,None),
+	(1,33,36,"GtkGridLayoutChild","top-attach","0",None,None,None,None),
+	(1,33,36,"GtkGridLayoutChild","width","1",None,None,None,None),
+	(1,33,37,"GtkGridLayoutChild","height","1",None,None,None,None),
+	(1,33,37,"GtkGridLayoutChild","left-attach","2",None,None,None,None),
+	(1,33,37,"GtkGridLayoutChild","top-attach","0",None,None,None,None),
+	(1,33,37,"GtkGridLayoutChild","width","1",None,None,None,None)
   </object_layout_property>
+  <object_data>
+	(1,36,"GtkWidget",1,1,None,None,None,None,None,None),
+	(1,36,"GtkWidget",2,2,None,1,None,None,None,None),
+	(1,36,"GtkWidget",2,3,None,1,None,None,None,None),
+	(1,36,"GtkWidget",2,4,None,1,None,None,None,None)
+  </object_data>
 </cambalache-project>
