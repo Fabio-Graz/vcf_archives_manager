@@ -23,7 +23,19 @@ The application accepts only one file in input. It will look for records with th
 
 ## Technical details
 
-The application is written in C++, and the graphical interface is using GTK library.
+The application is written in C++, and the graphical interface is using GTK library, in particular gtkmm-3.0.
+
+It ispossible to build just using g++, opening a terminal in the project's directory and giving the following command:
+
+> g++ -g -o build/vcf_archive_manager main.cpp myWindow.cpp `pkg-config --cflags --libs gtkmm-3.0`
+
+
+It is also possible to use cMake, opening a terminal in the 'build' subdirectory, and giving the following commands:
+
+> cmake ..
+> cmake --build .
+
+In both cases an executable will be created in the 'build' subdirectory.
 
 
 
