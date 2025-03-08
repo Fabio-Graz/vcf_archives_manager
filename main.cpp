@@ -2,7 +2,7 @@
 #include <cstring>
 #include <gtkmm/application.h>
 #include <gtkmm/builder.h>
-#include "myWindow.h"
+#include "gui.h"
 
 int main(int argc, char** argv)
 {

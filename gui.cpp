@@ -1,182 +1,9 @@
-#include "myWindow.h"
-#include <gtkmm.h>
+#include "gui.h"
+#include "vcf_operations.h"
+#include "helpers.h"
 
 #include <iostream>
-#include <filesystem>
-//#include <cmath>
-//#include <cstring>
 #include <sstream>
-
-///
-
-#include <fstream>
-#include <map>
-#include <vector>
-
-
-////////////
-
-
-
-// Structure to represent a VCF contact
-struct Contact {
-    std::string name;
-    std::vector<std::string> fields;
-};
-
-
-
-
-// Function to parse a VCF file
-std::map<std::string, Contact> parseVCF(const std::string& filePath) {
-    std::map<std::string, Contact> contacts;
-    std::ifstream file(filePath);
-    std::string line;
-    Contact currentContact;
-
-    while (std::getline(file, line)) {
-        if (line.find("BEGIN:VCARD") != std::string::npos) {
-            currentContact = Contact(); // Reset for a new contact
-        } else if (line.find("FN:") != std::string::npos) {
-            currentContact.name = line.substr(3); // Extract the name
-        } else if (line.find("END:VCARD") != std::string::npos) {
-            if (!currentContact.name.empty()) {
-                contacts[currentContact.name] = currentContact; // Save the contact
-            }
-        } else {
-            currentContact.fields.push_back(line); // Save other fields
-        }
-    }
-
-    return contacts;
-}
-
-
-
-// Overload the << operator for the Contact class
-std::ostream& operator<<(std::ostream& os, const Contact& contact) {
-    os << "Name: " << contact.name;
-    return os;
-}
-
-// Function to merge two VCF files
-std::map<std::string, Contact> mergeVCF(const std::string& file1, const std::string& file2, MainWindow& window) {
-    auto contacts1 = parseVCF(file1);
-    auto contacts2 = parseVCF(file2);
-
-    // Merge contacts2 into contacts1
-    for (const auto& [name, contact] : contacts2) {
-        if (contacts1.find(name) != contacts1.end()) {
-            // Merge fields if the contact already exists
-            for (const auto& field : contact.fields) {
-                contacts1[name].fields.push_back(field);
-
-            }
-            // Log merged contact
-            std::ostringstream osstream;
-            osstream <<"\n*** merged contact: " << contacts1[name];
-            window.append_log(osstream);
-
-        } else {
-            // Add new contact
-            contacts1[name] = contact;
-
-            // Log added contact
-            std::ostringstream osstream;
-            osstream <<"\nadded contact: " << contacts1[name];
-            window.append_log(osstream);
-
-        }
-    }
-
-    return contacts1;
-}
-
-// Function to write merged contacts to a new VCF file
-void writeMergedVCF(const std::map<std::string, Contact>& contacts, const std::string& outputPath) {
-    std::ofstream outputFile(outputPath);
-    for (const auto& [name, contact] : contacts) {
-        outputFile << "BEGIN:VCARD\n";
-        outputFile << "FN:" << name << "\n";
-        for (const auto& field : contact.fields) {
-            outputFile << field << "\n";
-        }
-        outputFile << "END:VCARD\n";
-    }
-}
-
-
-
-// function for deduplication
-
-void MainWindow::deduplicateVCF(const std::string& filePath, const std::string& outputPath) {
-    auto contacts = parseVCF(filePath);
-    std::map<std::string, Contact> uniqueContacts;
-
-    for (const auto& [name, contact] : contacts) {
-        // Extract name and surname (assuming the format is "Name Surname")
-        std::istringstream iss(name);
-        std::string namePart, surnamePart;
-        iss >> namePart >> surnamePart;
-
-        // Create a unique key by combining name and surname
-        std::string key = namePart + " " + surnamePart;
-
-        // Check if the key already exists
-        if (uniqueContacts.find(key) == uniqueContacts.end()) {
-            uniqueContacts[key] = contact;
-        } else {
-            // Log duplicate contact
-            std::ostringstream osstream;
-            osstream << "\nDuplicate contact: " << name;
-            append_log(osstream);
-        }
-    }
-
-    // Write the deduplicated contacts to the output file
-    writeMergedVCF(uniqueContacts, outputPath);
-}
-
-
-
-
-
-// helper functions to verify existance of output fodler
-// creates it if doesn't exist
-
-bool ensureOutputFolderExists(const std::filesystem::path& folder) {
-    if (!std::filesystem::is_directory(folder)) {
-        return std::filesystem::create_directories(folder);
-    }
-    return true;
-}
-
-
-// helper functions to verify existance of output file, returns true if user cancels
-// note: the previous helper does not need to be in the namespace of the MainWindow
-// this does because this calls a dialog window, which needs a parent
-
-bool MainWindow::checkUserCancelOnFileExists(const std::filesystem::path& outfile) {
-    if (std::filesystem::exists(outfile)) {
-
-        Gtk::MessageDialog dialog(*this, "File already exists. Overwrite?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK_CANCEL);
-        dialog.set_secondary_text("The file " + outfile.string() + " already exists. Do you want to overwrite it?");
-        int result = dialog.run();
-
-        if (result != Gtk::RESPONSE_OK) {
-            // User chose to cancel
-            return true;
-
-        }
-    }
-
-    return false;
-
-}
-////////
-// codice GUI
-///////
-
 
 
 
@@ -284,6 +111,30 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
 
 
 
+// helper functions to verify existance of output file, returns true if user cancels
+// note: this need to be in the namespace of the MainWindow because it calls
+// a dialog window, which needs a parent
+
+bool MainWindow::checkUserCancelOnFileExists(const std::filesystem::path& outfile) {
+    if (std::filesystem::exists(outfile)) {
+
+        Gtk::MessageDialog dialog(*this, "File already exists. Overwrite?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK_CANCEL);
+        dialog.set_secondary_text("The file " + outfile.string() + " already exists. Do you want to overwrite it?");
+        int result = dialog.run();
+
+        if (result != Gtk::RESPONSE_OK) {
+            // User chose to cancel
+            return true;
+
+        }
+    }
+
+    return false;
+
+}
+
+
+
 
 // Show an error dialog
 void MainWindow::showErrorDialog(const std::string& message) {
@@ -382,10 +233,17 @@ void MainWindow::on_run_button_clicked() {
     Glib::ustring outputFolder = m_entry_out_folder->get_text();
     Glib::ustring outputFilename = m_entry_out_filename->get_text();
 
-    if (inputfile_path_1.empty() || inputfile_path_2.empty()) {
-        showErrorDialog("Please provide paths to both VCF files.");
+
+    if ((m_is_merge_mode) && (inputfile_path_1.empty() || inputfile_path_2.empty())) {
+        showErrorDialog("Please provide paths to both VCF input files.");
         return;
     }
+
+    if (!m_is_merge_mode && inputfile_path_1.empty() ) {
+        showErrorDialog("Please provide path to VCF input file.");
+        return;
+    }
+
 
     if (outputFilename.empty()) {
         showErrorDialog("Please specify an output filename.");
@@ -431,7 +289,7 @@ void MainWindow::on_run_button_clicked() {
             writeMergedVCF(mergedContacts, outputFile_fs);
             showInfoDialog("Merged VCF saved to " + outputFile_fs.string());
         } else {
-            deduplicateVCF(inputfile_path_1, outputFile_fs);
+            deduplicateVCF(inputfile_path_1, outputFile_fs, *this);
             showInfoDialog("Deduplicated VCF saved to " + outputFile_fs.string());
         }
     } catch (const std::exception& e) {
@@ -462,10 +320,8 @@ void MainWindow::on_radio_deduplicate_toggled() {
 
 
 
-
 void MainWindow::append_log(std::ostringstream& osstream)
 {
-
 
     Glib::ustring ready_ustrm = osstream.str();
 
