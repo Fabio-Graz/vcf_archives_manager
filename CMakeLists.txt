@@ -10,6 +10,6 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM REQUIRED IMPORTED_TARGET gtkmm-3.0)
 
 # add the main code, and link the target_link_libraries
-add_executable(vcf_archive_manager main.cpp myWindow.cpp )
+add_executable(vcf_archive_manager main.cpp gui.cpp vcf_operations.cpp helpers.cpp)
 target_link_libraries(vcf_archive_manager PUBLIC PkgConfig::GTKMM)
 
