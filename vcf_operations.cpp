@@ -3,8 +3,6 @@
 
 #include <fstream>
 #include <sstream>
-//#include <algorithm> // for std::find
-
 
 
 
@@ -152,3 +150,37 @@ void deduplicateVCF(const std::string& filePath, const std::string& outputPath, 
 
 
 
+void cleanVCF(const std::string& filePath, const std::string& outputPath, MainWindow& window) {
+    auto contacts = parseVCF(filePath);
+    std::map<std::string, Contact> cleanedContacts;
+
+    for (const auto& [name, contact] : contacts) {
+        std::set<std::string> uniqueFields; // To store unique field values
+        Contact cleanedContact;
+        cleanedContact.name = contact.name;
+
+        for (const auto& field : contact.fields) {
+            // Extract the field value (e.g., "TEL:123456789")
+            size_t colonPos = field.find(':');
+            if (colonPos != std::string::npos) {
+                std::string fieldValue = field.substr(colonPos + 1);
+
+                // Check if the field value is already in the set
+                if (uniqueFields.find(fieldValue) == uniqueFields.end()) {
+                    uniqueFields.insert(fieldValue);
+                    cleanedContact.fields.push_back(field);
+                } else {
+                    // Log duplicate field
+                    std::ostringstream osstream;
+                    osstream << "\n*** Duplicate field in contact: " << name << " - " << field;
+                    window.append_log(osstream);
+                }
+            }
+        }
+
+        cleanedContacts[name] = cleanedContact;
+    }
+
+    // Write the cleaned contacts to the output file
+    writeMergedVCF(cleanedContacts, outputPath);
+}

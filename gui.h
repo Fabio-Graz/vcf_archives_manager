@@ -1,15 +1,22 @@
 #pragma once
 
 #include <gtkmm.h>
-
 #include <string>
-
 #include <filesystem>
 
 
 class MainWindow : public Gtk::Window
 {
 public:
+
+    // Define an enumeration for the modes
+    enum class Mode {
+        MERGE,
+        DEDUPLICATE,
+        CLEAN
+    };
+
+
     MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& p_builder);
 
     bool checkUserCancelOnFileExists(const std::filesystem::path& outfile);
@@ -43,6 +50,11 @@ protected:
 
     Glib::RefPtr<Gtk::RadioButton> m_radio_merge;
     Glib::RefPtr<Gtk::RadioButton> m_radio_deduplicate;
+    Glib::RefPtr<Gtk::RadioButton> m_radio_clean;
+
+
+    // Current mode
+    Mode m_current_mode = Mode::MERGE;
 
 
     //
@@ -69,10 +81,6 @@ protected:
 
     void on_radio_merge_toggled();
     void on_radio_deduplicate_toggled();
-
-
-
-    // Track the current mode
-    bool m_is_merge_mode = true;
+    void on_radio_clean_toggled();
 
 };

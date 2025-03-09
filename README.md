@@ -17,8 +17,14 @@ The application takes two files in input, and generates a single file in output.
 
 ## Deduplicate mode
 
-The application accepts only one file in input. It will look for records with the same name and surname, and it will merge them in asingle record.
+This is used to remove *duplicate records* (i.e. contacts with the same name).
+In this mode the application accepts only one file in input. It will look for records with the same name and surname, and it will merge them in a single record.
 
+
+## Clean mode
+
+This is used to remove *duplicate fields* from the same record (e.g. the same telephone number is saved twice, as "home number" and as "mobile number".
+In this mode the application accepts only one file in input. It will look for fields with the same content, and it will keep only one.
 
 
 ## Technical details

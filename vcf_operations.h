@@ -24,3 +24,4 @@ std::map<std::string, Contact> parseVCF(const std::string& filePath);
 std::map<std::string, Contact> mergeVCF(const std::string& file1, const std::string& file2, MainWindow& window);
 void writeMergedVCF(const std::map<std::string, Contact>& contacts, const std::string& outputPath);
 void deduplicateVCF(const std::string& filePath, const std::string& outputPath, MainWindow& window);
+void cleanVCF(const std::string& filePath, const std::string& outputPath, MainWindow& window);

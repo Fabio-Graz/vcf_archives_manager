@@ -58,6 +58,10 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     m_builder->get_widget("radio_deduplicate", p_radio_deduplicate);
     m_radio_deduplicate = Glib::RefPtr<Gtk::RadioButton>(p_radio_deduplicate);
 
+    Gtk::RadioButton* p_radio_clean = nullptr;
+    m_builder->get_widget("radio_clean", p_radio_clean);
+    m_radio_clean = Glib::RefPtr<Gtk::RadioButton>(p_radio_clean);
+
 
     // process and quit buttons
 
@@ -97,7 +101,7 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     // Connect radio button signals
     m_radio_merge->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_radio_merge_toggled));
     m_radio_deduplicate->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_radio_deduplicate_toggled));
-
+    m_radio_clean->signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_radio_clean_toggled));
 
 
     // Connect the process button click event to the relative function
@@ -234,16 +238,6 @@ void MainWindow::on_run_button_clicked() {
     Glib::ustring outputFilename = m_entry_out_filename->get_text();
 
 
-    if ((m_is_merge_mode) && (inputfile_path_1.empty() || inputfile_path_2.empty())) {
-        showErrorDialog("Please provide paths to both VCF input files.");
-        return;
-    }
-
-    if (!m_is_merge_mode && inputfile_path_1.empty() ) {
-        showErrorDialog("Please provide path to VCF input file.");
-        return;
-    }
-
 
     if (outputFilename.empty()) {
         showErrorDialog("Please specify an output filename.");
@@ -280,18 +274,49 @@ void MainWindow::on_run_button_clicked() {
 
 
     try {
-        if (m_is_merge_mode) {
-            if (inputfile_path_2.empty()) {
-                showErrorDialog("Please provide paths to both VCF files for merging.");
-                return;
+        switch (m_current_mode) {
+            case Mode::MERGE: {
+
+                if ( inputfile_path_1.empty() || inputfile_path_2.empty()) {
+                    showErrorDialog("Please provide paths to both VCF input files.");
+                    return;
+                }
+
+                auto mergedContacts = mergeVCF(inputfile_path_1, inputfile_path_2, *this);
+                writeMergedVCF(mergedContacts, outputFile_fs);
+                showInfoDialog("Merged VCF saved to " + outputFile_fs.string());
+                break;
             }
-            auto mergedContacts = mergeVCF(inputfile_path_1, inputfile_path_2, *this);
-            writeMergedVCF(mergedContacts, outputFile_fs);
-            showInfoDialog("Merged VCF saved to " + outputFile_fs.string());
-        } else {
-            deduplicateVCF(inputfile_path_1, outputFile_fs, *this);
-            showInfoDialog("Deduplicated VCF saved to " + outputFile_fs.string());
+
+            case Mode::DEDUPLICATE: {
+
+                if ( inputfile_path_1.empty() ) {
+                    showErrorDialog("Please provide path to VCF input file.");
+                    return;
+                }
+
+                deduplicateVCF(inputfile_path_1, outputFile_fs, *this);
+                showInfoDialog("Deduplicated VCF saved to " + outputFile_fs.string());
+                break;
+            }
+
+
+            case Mode::CLEAN: {
+
+                if ( inputfile_path_1.empty() ) {
+                    showErrorDialog("Please provide path to VCF input file.");
+                    return;
+                }
+
+                cleanVCF(inputfile_path_1, outputFile_fs, *this);
+                showInfoDialog("Cleaned VCF saved to " + outputFile_fs.string());
+                break;
+            }
+
         }
+
+
+
     } catch (const std::exception& e) {
         showErrorDialog("An error occurred: " + std::string(e.what()));
     }
@@ -303,21 +328,27 @@ void MainWindow::on_run_button_clicked() {
 
 void MainWindow::on_radio_merge_toggled() {
     if (m_radio_merge->get_active()) {
-        m_is_merge_mode = true;
+        m_current_mode = Mode::MERGE;
         m_entry_file_2->set_sensitive(true); // Enable the second input field
     }
 }
 
 void MainWindow::on_radio_deduplicate_toggled() {
     if (m_radio_deduplicate->get_active()) {
-        m_is_merge_mode = false;
+        m_current_mode = Mode::DEDUPLICATE;
         m_entry_file_2->set_sensitive(false); // Disable the second input field
-        m_entry_file_2->set_text(""); // erase the second input field
+        m_entry_file_2->set_text(""); // clear the second input field
     }
 }
 
 
-
+void MainWindow::on_radio_clean_toggled() {
+    if (m_radio_clean->get_active()) {
+        m_current_mode = Mode::CLEAN;
+        m_entry_file_2->set_sensitive(false); // Disable the second input field
+        m_entry_file_2->set_text(""); // clear the second input field
+    }
+}
 
 
 void MainWindow::append_log(std::ostringstream& osstream)
