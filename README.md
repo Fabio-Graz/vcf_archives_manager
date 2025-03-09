@@ -13,17 +13,18 @@ The application can run in two "modes": Merge and Deduplicate.
 
 ## Merge mode
 
-The application takes two files in input, and generates a single file in output. All the records (contacts) present in each input file will be copied in the output file. If a contact is present in both input files, with different fields (e.g. phone number, or address) all the different fields will be copied, and a single contact will be created in the merged output file.
+This mode is used to merge two different files.
+In this mode the application takes two files in input, and generates a single file in output. All the records (contacts) present in each input file will be copied in the output file. If a contact is present in both input files, with different fields (e.g. phone number, or address) all the different fields will be copied, and a single contact will be created in the merged output file.
 
 ## Deduplicate mode
 
-This is used to remove *duplicate records* (i.e. contacts with the same name).
+This mode is used to remove *duplicate records* (i.e. contacts with the same name).
 In this mode the application accepts only one file in input. It will look for records with the same name and surname, and it will merge them in a single record.
 
 
 ## Clean mode
 
-This is used to remove *duplicate fields* from the same record (e.g. the same telephone number is saved twice, as "home number" and as "mobile number".
+This mode is used to remove *duplicate fields* from the same record (e.g. the same telephone number is saved twice, as "home number" and as "mobile number".
 In this mode the application accepts only one file in input. It will look for fields with the same content, and it will keep only one.
 
 
