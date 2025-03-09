@@ -2,7 +2,7 @@
 # VCF Archives Manager
 
 
-This is a simple application with two functions that are useful in the management of vcf files.
+This is a simple application with three functions that are useful in the management of vcf files.
 
 VCF files are used to store databases of data from Address Book applications, both in mobile phones and in computer systems.
 In particular, VCF format is a standard, and it is possible to save in this format, and read from this format, in most of the applications used in most of the systems.
